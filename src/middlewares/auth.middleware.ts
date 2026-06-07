@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import { verifyToken } from "@/utils/jwt";
 import { Role } from "@/types/role";
 
 export const authenticate = (
@@ -6,7 +7,8 @@ export const authenticate = (
     res: Response,
     next: NextFunction
 ): void => {
-    const authHeader = req.headers.authorization;
+    try {
+        const authHeader = req.headers.authorization;
 
     if(!authHeader?.startsWith('Bearer ')){
         res.status(401).json({
@@ -18,18 +20,26 @@ export const authenticate = (
 
     const token = authHeader.split(" ")[1];
 
-    if(!token){
+    const payload = verifyToken(token);
+
+    // if(!token){
+    //     res.status(401).json({
+    //         success: false,
+    //         message: "Invalid token",
+    //     });
+    //     return;
+    // }
+
+    req.user = {
+        id: payload.id,
+        role: payload.role,
+    };
+
+    next();
+    } catch (error) {
         res.status(401).json({
             success: false,
             message: "Invalid token",
         });
-        return;
     }
-
-    req.user = {
-        id: 'user_123',
-        role: Role.CONTRIBUTOR,
-    };
-
-    next();
-}
+};

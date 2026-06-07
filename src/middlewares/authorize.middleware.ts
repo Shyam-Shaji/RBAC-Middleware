@@ -14,6 +14,13 @@ export const authorize = (allowedRoles: Role[]) => {
             });
             return;
         }
+        if(!allowedRoles.includes(req.user.role)){
+            res.status(403).json({
+                success: false,
+                message: "Forbidden",
+            });
+            return;
+        }
         next();
     };
 };
